@@ -1,0 +1,11 @@
+# Change log for Perl module Biblio-COUNTER
+
+# This file is in YAML format; see <URL:http://www.yaml.org/>
+# for more information
+
+- date: 2008-11-10
+  version: 0.08
+  note: first public release
+
+- date: 2008-11-06
+  note: first put under revision control
