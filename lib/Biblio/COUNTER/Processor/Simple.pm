@@ -65,6 +65,16 @@ sub trimmed {
     print STDERR "WARNING $pos TRIMMED $field\n";
 }
 
+sub begin_file {
+    my ($self, $file) = @_;
+    print STDERR "BEGIN file $file\n";
+}
+
+sub end_file {
+    my ($self, $file) = @_;
+    print STDERR "END file $file\n";
+}
+
 sub begin_report {
     my ($self, $report) = @_;
     print STDERR "BEGIN report\n";

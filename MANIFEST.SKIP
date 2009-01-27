@@ -1,4 +1,6 @@
 ^_darcs
+^_build
+^Build$
 ^\.
 \bCVS\b
 \.DS_Store$

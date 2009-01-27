@@ -7,7 +7,7 @@ use strict;
 
 use vars qw($VERSION);
 
-$VERSION = '0.08';
+$VERSION = '0.09';
 
 sub report {
     my ($cls, $how, %args) = @_;
@@ -325,11 +325,21 @@ Logically, a COUNTER report has the following structure:
 
 =over 4
 
+=item B<begin_file>(I<$report>, I<$file>)
+
+Parsing of the given file is beginning. This is always the first event
+triggered.  At the time this callback is invoked, the report has not yet been
+identified.
+
+=item B<end_file>(I<$report>, I<$file>)
+
+Parsing of the given file has ended. This is always the last event
+triggered.
+
 =item B<begin_report>(I<$report>)
 
-Processing of the report is beginning.  This is always the first event
-triggered.  At the time this callback is invoked, the report has not yet
-been identified, so 
+Processing of the report is beginning.  At the time this callback is invoked,
+the report has not yet been identified.
 
 =item B<end_report>(I<$report>)
 

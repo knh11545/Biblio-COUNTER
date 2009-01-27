@@ -68,15 +68,30 @@ sub process_record {
     my ($self) = @_;
     $self->begin_row
          ->check_title(NOT_BLANK)
-         ->check_publisher(NOT_BLANK)
+         ->check_publisher(MAY_BE_BLANK)
          ->check_platform(NOT_BLANK)
          ->check_print_issn
-         ->check_online_issn
-         ->check_count_by_periods(REQUESTS)
-         ->check_ytd_total
-         ->check_ytd_html
+         ->check_online_issn;
+    $self->check_count_by_periods(REQUESTS);
+    $self->check_ytd_total;
+    $self->check_ytd_html
          ->check_ytd_pdf
          ->end_row;
 }
 
 1;
+
+=pod
+
+=head1 NAME
+
+Biblio::COUNTER::Report::Release2::JournalReport1 - a JR1 (R2) COUNTER report
+
+=head1 SYNOPSIS
+
+    $report = Biblio::COUNTER::Report::Release2::JournalReport1->new(
+        'file' => $file,
+    );
+    $report->process;
+
+=cut

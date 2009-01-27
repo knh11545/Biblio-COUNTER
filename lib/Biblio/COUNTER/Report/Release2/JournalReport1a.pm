@@ -3,7 +3,7 @@ package Biblio::COUNTER::Report::Release2::JournalReport1a;
 use strict;
 use warnings;
 
-use Biblio::COUNTER::Report qw(TURNAWAYS MAY_BE_BLANK NOT_BLANK);
+use Biblio::COUNTER::Report qw(REQUESTS TURNAWAYS MAY_BE_BLANK NOT_BLANK);
 
 @Biblio::COUNTER::Report::Release2::JournalReport1a::ISA = qw(Biblio::COUNTER::Report);
 
@@ -89,3 +89,18 @@ sub process_record {
 }
 
 1;
+
+=pod
+
+=head1 NAME
+
+Biblio::COUNTER::Report::Release2::JournalReport1 - a JR1a (R2) COUNTER report
+
+=head1 SYNOPSIS
+
+    $report = Biblio::COUNTER::Report::Release2::JournalReport1a->new(
+        'file' => $file,
+    );
+    $report->process;
+
+=cut

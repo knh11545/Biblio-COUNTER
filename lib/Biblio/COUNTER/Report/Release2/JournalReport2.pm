@@ -76,3 +76,18 @@ sub process_record {
 }
 
 1;
+
+=pod
+
+=head1 NAME
+
+Biblio::COUNTER::Report::Release2::JournalReport2 - a JR2 (R2) COUNTER report
+
+=head1 SYNOPSIS
+
+    $report = Biblio::COUNTER::Report::Release2::JournalReport2->new(
+        'file' => $file,
+    );
+    $report->process;
+
+=cut

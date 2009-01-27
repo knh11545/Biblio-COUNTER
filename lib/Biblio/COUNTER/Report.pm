@@ -111,13 +111,25 @@ sub new {
 
 sub process {
     my ($self) = @_;
-    $self->begin_report
+    $self->begin_file
+         ->begin_report
          ->process_header
          ->process_body
-         ->end_report;
+         ->end_report
+         ->end_file;
 }
 
 # ---------------------------------------------- TOP-LEVEL STRUCTURAL METHODS --
+
+sub begin_file {
+    my ($self) = @_;
+    $self->trigger_callback('begin_file', $self->{'file'});
+}
+
+sub end_file {
+    my ($self) = @_;
+    $self->trigger_callback('end_file', $self->{'file'});
+}
 
 sub begin_report {
     my ($self) = @_;
@@ -198,7 +210,15 @@ sub errors { $_[0]->{'errors'} }
 sub begin_row {
     my ($self) = @_;
     $self->trigger_callback('begin_row');
-    $self->_read_next_row;
+    my $fh = $self->{'fh'};
+    while (!eof $fh) {
+        my $row = $self->_read_next_row;
+        my $row_str = join('', @$row);
+        last if $row_str =~ /\S/;
+        # Oops -- blank row where one wasn't expected
+        $self->trigger_callback('fixed', '<row>', '<blank>', '<skipped>');
+        $self->{'warnings'}++;
+    }
     return $self;
 }
 
@@ -282,17 +302,17 @@ sub check_online_issn {
 
 sub check_ytd_total {
     my ($self, $metric) = @_;
-    $self->_check_count($metric, YTD_TOTAL)->_next;
+    $self->_check_count($metric, YTD_TOTAL);
 }
 
 sub check_ytd_html {
     my ($self, $metric) = @_;
-    $self->_check_count($metric, YTD_HTML)->_next;
+    $self->_check_count($metric, YTD_HTML);
 }
 
 sub check_ytd_pdf {
     my ($self, $metric) = @_;
-    $self->_check_count($metric, YTD_PDF)->_next;
+    $self->_check_count($metric, YTD_PDF);
 }
 
 sub check_period_labels {
@@ -384,12 +404,12 @@ sub blank_row {
     my $row_str = join('', @$row);
     if (@$row == 0) {
         # No cells at all -- perfect!
-        $self->_read_next_row;
+        # ??? $self->_read_next_row;
     }
     elsif ($row_str eq '') {
         # All cells are empty -- ok
         # XXX Callback??
-        $self->_read_next_row;
+        # ??? $self->_read_next_row;
     }
     elsif ($row_str =~ /\S/) {
         # Hmm, no blank row
@@ -403,7 +423,7 @@ sub blank_row {
             my $cur = $self->_ref_to_cur_cell;
             $self->_in_field(BLANK)->_trim($cur)->_next;
         }
-        $self->_read_next_row;
+        # ??? $self->_read_next_row;
     }
     # Output a blank line regardless of what we found
     $self->trigger_callback('output', '');
@@ -779,6 +799,34 @@ sub _eof {
     eof $self->{'fh'};
 }
 
+sub _sr {
+    my ($self) = @_;
+    # Show row -- for debugging purposes
+    my $row = $self->{row};
+    my ($rcur, $ccur) = $self->_pos;
+    my $c = 'A';
+    foreach my $val (@$row) {
+        print STDERR $c eq $ccur ? "\e[32m-> " : '   ';
+        printf STDERR "%s%d %s\e[0m\n", $c++, $rcur, _hilite_for_debugging($val, $c eq $ccur);
+    }
+    if ($ccur eq $c) {
+        print STDERR "\e[32m->\e[0m\n";
+    }
+}
+
+sub _hilite_for_debugging {
+    my ($str, $is_cur) = @_;
+    my $reset = $is_cur ? "\e[32m" : "\e[0m";
+    if ($str eq '') {
+        $str = "\e[31m<empty>$reset";
+    }
+    else {
+        $str =~ s/(^\s+|\s+$)/"\e[31m" . ('_' x length($1)) . $reset/eg;
+    }
+    return $str;
+}
+
+
 sub _next {
     # Move to the next column in the current row
     my ($self) = @_;
@@ -872,6 +920,7 @@ sub _trimmed {
     my ($self, $cur) = @_;
     $cur ||= $self->_ref_to_cur_cell;
     $self->trigger_callback('trimmed', $self->{'field'}, $$cur);
+    $self->{'warnings'}++;
     return $self;
 }
 
@@ -928,33 +977,22 @@ sub _col2idx {
 
 1;
 
-__END__
-    my ($line, @cells);
-    my ($genre, $number, $release);
-    while (1) {
-        $line = $self->_read_next_line;
-        die "Empty report" unless defined $line;
-        if ($line =~ /\S/) {
-            @cells = $self->_parse_line($line);
-            if (@cells >= 2) {
-                my ($name, $title) = @cells;
-                ($genre, $number, $release) = _parse_model($name, $title);
-                die "Unrecognized report type: $line"
-                    unless defined $genre;
-                last;
-            }
-            elsif (@cells == 1) {
-                die;
-            }
-        }
-    }
-    # Remember this first (non-blank) line
-    push @$rows, $self->{'row'} = \@cells;
-    $self->{'r'} = 1;
-    $self->{'c'} = 'A';
-    # Create the "model" object
-    my $cls = "Biblio::COUNTER::Report::Release${release}::${genre}Report${number}";
-    die "Unimplemented report type: $line"
-        unless eval "use $cls; 1";
-    $cls->new(%$self);
-}
+
+=pod
+
+=head1 NAME
+
+Biblio::COUNTER::Report - a COUNTER-compliant (or not) report
+
+=head1 SYNOPSIS
+
+    $report = Biblio::COUNTER::Report->new(
+        'file' => $file,
+    );
+
+=head1 DESCRIPTION
+
+=head1 PUBLIC METHODS
+
+=cut
+

@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 
 # counterproc by Paul Hoffman (nkuitse AT nkuitse DOT com).
-# Copyright 2008 Paul M. Hoffman.
+# Copyright 2008-2009 Paul M. Hoffman.
 # This software is made available under the same terms as Perl;
 # see below for details.
 
@@ -19,14 +19,16 @@ use Getopt::Long
 use vars qw($PROGRAM $VERSION $AUTHOR $COPYRIGHT $PAGER);
 
 $PROGRAM = basename($0);
-$VERSION = '0.01';
+$VERSION = '0.03';
 $AUTHOR  = 'Paul Hoffman (nkuitse AT nkuitse DOT com)';
-$COPYRIGHT = "Copyright 2008 Paul M. Hoffman";
+$COPYRIGHT = "Copyright 2008-2009 Paul M. Hoffman";
 
 my $action = \&run;
 my $verbose;
 
-my $processor = Biblio::COUNTER::Processor::Simple->new;
+my $processor_class = 'Simple';
+my @processor_args;
+my @ignore;
 
 # -------------------------------- Setup
 
@@ -35,8 +37,13 @@ $| = 1;
 # -------------------------------- Read command-line options and arguments
 
 GetOptions(
-    'I|ignore=s' => sub { $processor->ignore(split /,/, $_[1]) },
-    'v|verbose'  => \$verbose,
+    'P|processor=s' => \$processor_class,
+    'D|proc-arg=s'  => \@processor_args,
+    'I|ignore=s' => \@ignore,
+    'u|unbuffered' => sub { $| = 1 },
+    'v|verbose'  => sub { $verbose = 1; push @processor_args, 'verbose' },
+    'c|validate' => sub { $processor_class = 'Validate' },
+    'A|atomize'  => sub { $processor_class = 'Atomize' },
     'h|help'     => sub { $action = \&help },
     'V|version'  => sub { $action = \&version },
     'M|manual'   => sub { $action = \&manual },
@@ -50,11 +57,35 @@ $action->();
 # -------------------------------- Action functions
 
 sub run {
+    if ($processor_class !~ /::/) {
+        $processor_class = 'Biblio::COUNTER::Processor::' . $processor_class;
+    }
+    die "Can't load processor '$processor_class': $@\n"
+        unless eval "use $processor_class; 1";
+    my %args;
+    foreach (@processor_args) {
+        my ($key, $val) = split /=/, $_, 2;
+        $args{$key} = defined($val) ? $val : 1;
+    }
+    my $processor = $processor_class->new(%args);
+    if (@ignore) {
+        if ($processor->can('ignore')) {
+            $processor->ignore(split /,/, @ignore);
+        }
+        else {
+            print STDERR "Processor '$processor' can't ignore events\n";
+            exit 2;
+        }
+    }
     @ARGV = ('-') unless @ARGV;
-    foreach my $f (@ARGV) {
-        print STDERR "BEGIN file $f\n";
-        $processor->run($f eq '-' ? \*STDIN: $f);
-        print STDERR "END file $f\n";
+    exit usage() unless @ARGV == 1;
+    my $f = shift @ARGV;
+    my $report = $processor->run($f);
+    if ($report->is_valid) {
+        exit 0;
+    }
+    else {
+        exit -1;
     }
 }
 
@@ -165,21 +196,111 @@ B<counterproc> B<-V>|B<--version>
 
 =head1 DESCRIPTION
 
-B<counterproc> <##>.
+B<counterproc> performs common operations on electronic resource reports that
+conform (more or less) to the COUNTER Codes of Practice, Release 2.  These
+include report validation, correction of many common errors, and extraction of
+raw usage data.
 
-If no file is specified, or if the file name C<-> is specified, standard input
-will be processed.
+The action to take is specified as an option, and the file to process is the
+sole non-option argument.  Standard input is processed if no file is specified.
 
-<##>
+Output includes the (corrected) report, which is printed to standard output,
+and whatever other output is appropriate for the desired action, which is
+printed to standard error.
+
+=head1 DIAGNOSTICS
+
+The exit status of L<counterproc|counterproc> will be 0 if the report
+is valid, or -1 if the report is B<not> valid.
 
 =head1 OPTIONS
 
+B<Note:> If none of B<-c>, B<--validate>, B<-A>, or B<--atomize> is specified,
+the report will be processed using L<Biblio::COUNTER::Processor::Simple>, which
+prints verbose diagnostic information to standard error and the (corrected)
+report to standard output.
+
 =over 4
+
+=item B<-c>, B<--validate>
+
+Validate the input.
+
+L<Biblio::COUNTER::Processor::Validate|Biblio::COUNTER::Processor::Validate>
+will be used to check the report, printing a count of errors and warnings to
+standard error and the (corrected) output to standard output.
+
+=item B<-A>, B<--atomize>
+
+Extract data from the report, producing a single tab-delimited line for each
+datum.  The data lines are preceded by a single line containing column headers.
+
+Each line of output has the following elements, which appear in the order
+listed:
+
+=over 4
+
+=item B<code>
+
+The short code that indicates the type of the report (e.g., C<JR1> or C<DB3>).
+
+=item B<file>
+
+The name of the file containing the report.  Set to C<-> if processing
+standard input.
+
+=item B<processor>
+
+The <Biblio::COUNTER::Processor::Atomize|Biblio::COUNTER::Processor::Atomize>
+instance.  (Just ignore this.)
+
+=item B<report>
+
+The instance of the appropriate subclass of
+<Biblio::COUNTER::Report|Biblio::COUNTER::Report>.  (Ignore this, too.)
+
+=item B<period>
+
+A string of the form I<YYYY-mm> denoting the period in question.
+
+=item B<metric>
+
+The type of event counted (C<requests>, C<sessions>, C<searches>, or
+C<turnaways>).
+
+=item B<count>
+
+The count itself.
+
+=item B<platform>
+
+The platform on which the resource was provided.
+
+=item B<title>
+
+The resource title.
+
+=item B<publisher>
+
+The resource's publisher.  May be the empty string.
+
+=item B<print_issn> (journal reports only)
+
+The journal's print ISSN.
+
+=item B<online_issn> (journal reports only)
+
+The journal's online ISSN.
+
+=item B<isbn> (book reports only)
+
+The book's ISBN.
+
+=back
 
 =item B<-v>, B<--verbose>
 
-Be verbose.  This currently has no effect unless used with the B<-V> or
-B<--version> option.
+Be verbose.  The effect of this depends on the action to be taken.
 
 =item B<-h>, B<--help>
 
@@ -206,7 +327,7 @@ Paul Hoffman (nkuitse AT nkuitse DOT com)
 
 =head1 COPYRIGHT
 
-Copyright 2008 Paul M. Hoffman.
+Copyright 2008-2009 Paul M. Hoffman.
 
 This module is free software; you can redistribute it and/or modify it
 under the same terms as Perl:
@@ -236,6 +357,10 @@ L<Biblio::COUNTER>
 L<Biblio::COUNTER::Report>
 
 L<Biblio::COUNTER::Report::Processor::Simple>
+
+L<Biblio::COUNTER::Report::Processor::Validate>
+
+L<Biblio::COUNTER::Report::Processor::Atomize>
 
 =begin license
 

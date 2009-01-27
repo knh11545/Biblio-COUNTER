@@ -24,10 +24,16 @@ sub ignore {
 sub run {
     my ($self, $report) = @_;
     my $fh;
+    $self->{'file'} = $report;
     if (ref($report) eq '') {
         # Assume $report is a file name
+        if ($report eq '-') {
+            $fh = \*STDIN;
+        }
+        else {
         open $fh, '<', $report
             or die "Can't open report '$report': $!";
+        }
         $report = Biblio::COUNTER->report($fh);
     }
     elsif ($report->isa('Biblio::COUNTER::Report')) {
@@ -37,6 +43,7 @@ sub run {
         # Assume it's a filehandle
         $report = Biblio::COUNTER->report($report);
     }
+    $report->{'file'} = $self->{'file'};
     my $ignore = $self->{'ignore'};
     $report->{'callback'} = {
         '*' => sub {

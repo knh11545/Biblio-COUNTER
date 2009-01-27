@@ -50,8 +50,9 @@ sub process_record {
     my ($self) = @_;
     
     # First row -- searches run
-    $self->begin_row
-         ->check_title(NOT_BLANK)
+    $self->begin_row;
+    return if $self->_eof;
+    $self->check_title(NOT_BLANK)
          ->check_platform(NOT_BLANK)
          ->check_label('Searches run')
          ->check_count_by_periods(SEARCHES)
@@ -71,7 +72,22 @@ sub process_record {
          ->check_ytd_total
          ->end_row;
     
-    $self->blank_row;
+    $self->blank_row unless $self->_eof;
 }
 
 1;
+
+=pod
+
+=head1 NAME
+
+Biblio::COUNTER::Report::Release2::DatabaseReport3 - a DB3 (R2) COUNTER report
+
+=head1 SYNOPSIS
+
+    $report = Biblio::COUNTER::Report::Release2::DatabaseReport3->new(
+        'file' => $file,
+    );
+    $report->process;
+
+=cut
