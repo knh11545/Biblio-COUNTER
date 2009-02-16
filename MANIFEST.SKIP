@@ -18,3 +18,4 @@
 ^Biblio-COUNTER-
 test-all-reports
 validate-many
+^t/.*pod-coverage.*

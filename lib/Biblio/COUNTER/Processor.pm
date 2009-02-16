@@ -56,6 +56,7 @@ sub run {
     };
     $report->process;
     close $fh if defined $fh;
+    return $report;
 }
 
 

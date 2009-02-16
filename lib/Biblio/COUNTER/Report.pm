@@ -5,8 +5,9 @@ use warnings;
 
 use Biblio::COUNTER;
 
-use Exporter qw(import);
-use vars qw(@EXPORT_OK);
+require Exporter;
+use vars qw(@ISA @EXPORT_OK);
+@ISA = qw(Exporter);
 @EXPORT_OK = qw(
     MAY_BE_BLANK
     NOT_BLANK   
