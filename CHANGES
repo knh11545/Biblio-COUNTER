@@ -4,6 +4,12 @@
 # for more information
 
 - date: 2009-02-16
+  version: 0.11
+  changes:
+    - Biblio:COUNTER::Processor::Validate now prints (corrected) report to standard output, as documented
+    - hence counterproc -c works as documented
+
+- date: 2009-02-16
   version: 0.10
   changes:
     - Biblio::COUNTER::Processor::run() now correctly returns the report object

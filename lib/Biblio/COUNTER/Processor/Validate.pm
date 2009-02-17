@@ -13,6 +13,11 @@ use Biblio::COUNTER::Processor;
 sub verbose { @_ > 1 ? $_[0]->{'verbose'} = $_[1] : $_[0]->{'verbose'} }
 sub silent { @_ > 1 ? $_[0]->{'silent'} = $_[1] : $_[0]->{'silent'} }
 
+sub output {
+    my ($self, $report, $output) = @_;
+    print $output, "\n";
+}
+
 sub fixed {
     my ($self, $report, $field, $from, $to) = @_;
     return unless $self->verbose;
@@ -76,7 +81,7 @@ the report B<with corrections> to standard output.
 
 =item B<new>(I<%args>)
 
-    $foo = Biblio::COUNTER::Processor::Validate->new;
+    $processor = Biblio::COUNTER::Processor::Validate->new;
 
 =item B<run>(I<$file>)
 
@@ -115,7 +120,7 @@ Paul Hoffman (nkuitse AT cpan DOT org)
 
 =head1 COPYRIGHT
 
-Copyright 2008 Paul M. Hoffman.
+Copyright 2008-2009 Paul M. Hoffman.
 
 This is free software, and is made available under the same terms as Perl
 itself.

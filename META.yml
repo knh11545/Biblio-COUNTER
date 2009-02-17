@@ -1,6 +1,6 @@
 ---
 name: Biblio-COUNTER
-version: 0.10
+version: 0.11
 author:
   - Paul Hoffman <nkuitse@cpan.org>
 abstract: COUNTER Codes of Practice report processing
@@ -12,7 +12,7 @@ requires:
 provides:
   Biblio::COUNTER:
     file: lib/Biblio/COUNTER.pm
-    version: 0.10
+    version: 0.11
   Biblio::COUNTER::Processor:
     file: lib/Biblio/COUNTER/Processor.pm
   Biblio::COUNTER::Processor::Atomize:
