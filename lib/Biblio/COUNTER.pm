@@ -1,3 +1,4 @@
+use utf8;
 package Biblio::COUNTER;
 
 use Biblio::COUNTER::Report;
@@ -7,7 +8,7 @@ use strict;
 
 use vars qw($VERSION);
 
-$VERSION = '0.11';
+$VERSION = '0.12';
 
 sub report {
     my ($cls, $how, %args) = @_;
@@ -544,6 +545,8 @@ COUNTER reports only.  XML formats are not supported at this time.
 The following is a list of COUNTER reports, with full name and description,
 that are supported by this version of L<Biblio::COUNTER|Biblio::COUNTER>:
 
+=head2 COUNTER Release 2 Reports
+
 =over 4
 
 =item C<Journal Report 1 (R2)>
@@ -572,7 +575,24 @@ Total Searches and Sessions by Month and Service
 
 =back
 
-Other reports, including Release 3 reports, will be supported in the future.
+
+=head2 COUNTER Release 3 Reports
+
+=over 4
+
+=item C<Journal Report 1 (R3)>
+
+Number of Successful Full-Text Article Requests by Month and Journal
+
+=item C<Journal Report 1a (R3)>
+
+Number of Successful Full-Text Article Requests from an Archive by Month and Journal
+
+=back
+
+Other reports, including Release 4 reports, will be supported in the future.
+
+
 
 =head1 SEE ALSO
 
@@ -581,6 +601,8 @@ L<http://www.projectcounter.org/>
 =head1 AUTHOR
 
 Paul Hoffman (nkuitse AT cpan DOT org).
+
+Contributions from Todd Holbrook (holbrook AT cpan DOT org), Helge Knüttel.
 
 =head1 COPYRIGHT
 

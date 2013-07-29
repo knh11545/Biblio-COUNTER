@@ -2,6 +2,13 @@
 
 # This file is in YAML format; see <URL:http://www.yaml.org/>
 # for more information
+- date: 2013-07-29
+  version: 0.12
+  changes:
+    - Support COUNTER Release 3 reports JR1, JR1a
+    - Fix bug #51993 from CPAN with patch from holbrook@cpan.org.
+    - Handle YTD values in reports JR1, JR1a. Those were missing in the report object.
+    - Added Log4Perl for easier debugging.
 
 - date: 2009-02-16
   version: 0.11
