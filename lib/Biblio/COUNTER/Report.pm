@@ -5,6 +5,9 @@ use warnings;
 
 use Biblio::COUNTER;
 
+use Log::Log4perl qw(:easy);
+Log::Log4perl->easy_init($INFO);
+
 require Exporter;
 use vars qw(@ISA @EXPORT_OK);
 @ISA = qw(Exporter);
@@ -188,15 +191,15 @@ sub process_record {
 
 # ----------------------------------------------------------------- ACCESSORS --
 
-sub name        { @_ > 1 ? $_[0]->{'report'}->{NAME()       } = $_[1] : $_[0]->{'report'}->{NAME()       } }
-sub code        { @_ > 1 ? $_[0]->{'report'}->{CODE()       } = $_[1] : $_[0]->{'report'}->{CODE()       } }
-sub release     { @_ > 1 ? $_[0]->{'report'}->{RELEASE()    } = $_[1] : $_[0]->{'report'}->{RELEASE()    } }
-sub description { @_ > 1 ? $_[0]->{'report'}->{DESCRIPTION()} = $_[1] : $_[0]->{'report'}->{DESCRIPTION()} }
-sub date_run    { @_ > 1 ? $_[0]->{'report'}->{DATE_RUN()   } = $_[1] : $_[0]->{'report'}->{DATE_RUN()   } }
-sub criteria    { @_ > 1 ? $_[0]->{'report'}->{CRITERIA()   } = $_[1] : $_[0]->{'report'}->{CRITERIA()   } }
-sub publisher   { @_ > 1 ? $_[0]->{'report'}->{PUBLISHER()  } = $_[1] : $_[0]->{'report'}->{PUBLISHER()  } }
-sub platform    { @_ > 1 ? $_[0]->{'report'}->{PLATFORM()   } = $_[1] : $_[0]->{'report'}->{PLATFORM()   } }
-sub periods     { @_ > 1 ? $_[0]->{'report'}->{PERIODS()    } = $_[1] : $_[0]->{'report'}->{PERIODS()    } }
+sub name        { @_ > 1 ? $_[0]->{'header'}->{NAME()       } = $_[1] : $_[0]->{'header'}->{NAME()       } }
+sub code        { @_ > 1 ? $_[0]->{'header'}->{CODE()       } = $_[1] : $_[0]->{'header'}->{CODE()       } }
+sub release     { @_ > 1 ? $_[0]->{'header'}->{RELEASE()    } = $_[1] : $_[0]->{'header'}->{RELEASE()    } }
+sub description { @_ > 1 ? $_[0]->{'header'}->{DESCRIPTION()} = $_[1] : $_[0]->{'header'}->{DESCRIPTION()} }
+sub date_run    { @_ > 1 ? $_[0]->{'header'}->{DATE_RUN()   } = $_[1] : $_[0]->{'header'}->{DATE_RUN()   } }
+sub criteria    { @_ > 1 ? $_[0]->{'header'}->{CRITERIA()   } = $_[1] : $_[0]->{'header'}->{CRITERIA()   } }
+sub publisher   { @_ > 1 ? $_[0]->{'header'}->{PUBLISHER()  } = $_[1] : $_[0]->{'header'}->{PUBLISHER()  } }
+sub platform    { @_ > 1 ? $_[0]->{'header'}->{PLATFORM()   } = $_[1] : $_[0]->{'header'}->{PLATFORM()   } }
+sub periods     { @_ > 1 ? $_[0]->{PERIODS()} = $_[1] : $_[0]->{PERIODS()} }
 
 sub records { @{ $_[0]->{'records'} ||= [] } }
 
@@ -303,6 +306,8 @@ sub check_online_issn {
 
 sub check_ytd_total {
     my ($self, $metric) = @_;
+    TRACE "Inside Biblio::COUNTER::Report::check_ytd_total\n";
+    TRACE "  metric: ", (defined $metric ? $metric : "undef"), "\n";
     $self->_check_count($metric, YTD_TOTAL);
 }
 
@@ -516,37 +521,66 @@ sub _not_available {
 
 sub _check_count {
     my ($self, $field, $period) = @_;
+    TRACE "Inside Biblio::COUNTER::Report::_check_count.\n";
+    TRACE "  Period: ", (defined $period ? $period : "undef"), "\n";
+    TRACE "  Field : ", (defined $field ? $field : "undef"), "\n";
     my $cur = $self->_ref_to_cur_cell;
     $self->_trim($cur);
     my $val = $$cur;
     my $container = $self->{'container'};
     if (defined $period) {
-        # Usage for a particular period
-        my ($result, $normalized_period);
-        ($result, $period, $normalized_period) = $self->parse_period($period);
-        if ($val =~ /^\d+$/) {
-            if ($result != INVALID) {
-                $container->{'count'}->{$normalized_period}->{$field} = $val;
-                $self->trigger_callback('count', $self->{'scope'}, $field, $period, $val);
+        if ($period =~ m/ytd|ytd_html|ytd_pdf/) {
+            TRACE "Inside Biblio::COUNTER::Report::_check_count. Handling $period.\n";
+            TRACE "  Field : ", (defined $field ? $field : "undef"), " = $val", "\n";
+
+            if ($val =~ /^\d+$/) {
+                $container->{'count'}->{$period}->{$field} = $val;
+                $self->trigger_callback("count_$field", $self->{'scope'}, $field, $val);
             }
-        }
-        elsif ($val eq '') {
-            if ($self->{'treat_blank_counts_as_zero'}) {
-                $container->{'count'}->{$normalized_period}->{$field} = $val;
-                $self->trigger_callback('count', $self->{'scope'}, $field, $period, 0);
+            elsif ($val eq '') {
+                if ($self->{'treat_blank_counts_as_zero'}) {
+                    $container->{'count'}->{$period}->{$field} = $val;
+                    $self->trigger_callback("count_$field", $self->{'scope'}, $field, 0);
+                }
             }
-        }
-        elsif ($val =~ m{^n/a$}i) {
-            $self->_not_available;
-        }
-        else {
-            $self->_cant_fix('<count>');
+            elsif ($val =~ m{^n/a$}i) {
+                $self->_not_available;
+            }
+            else {
+                $self->_cant_fix('<count>');
+            }
+        } else {
+            # Usage for a particular period
+            my ($result, $normalized_period);
+            ($result, $period, $normalized_period) = $self->parse_period($period);
+            TRACE "  result: ", (defined $result ? $result : "undef"), "\n";
+            TRACE "  normalized_period: ", (defined $normalized_period ? $normalized_period : "undef"), "\n";
+            if ($val =~ /^\d+$/) {
+                if ($result != INVALID) {
+                    $container->{'count'}->{$normalized_period}->{$field} = $val;
+                    $self->trigger_callback('count', $self->{'scope'}, $field, $period, $val);
+                }
+            }
+            elsif ($val eq '') {
+                if ($self->{'treat_blank_counts_as_zero'}) {
+                    $container->{'count'}->{$normalized_period}->{$field} = $val;
+                    $self->trigger_callback('count', $self->{'scope'}, $field, $period, 0);
+                }
+            }
+            elsif ($val =~ m{^n/a$}i) {
+                $self->_not_available;
+            }
+            else {
+                $self->_cant_fix('<count>');
+            }
         }
     }
     else {
         # YTD usage
         if ($val =~ /^\d+$/) {
             $container->{'count'}->{$field} = $val;
+
+            TRACE "### Inside Biblio::COUNTER::Report::_check_count. Field: $field\n";
             $self->trigger_callback("count_$field", $self->{'scope'}, $field, $val);
         }
         elsif ($val eq '') {
@@ -927,7 +961,9 @@ sub _trimmed {
 
 sub parse_period {
     my ($self, $str) = @_;
+    TRACE "  in parse_period: str: $str\n";
     if ($str =~ /^(?:($rx_mon)-($rx_year)|($rx_year)-($rx_mon))$/ig) {
+        TRACE "  in parse_period: Matched month/year pattern\n";
         my ($m, $y) = $1 ? ($1, $2) : ($4, $3);
         my $period = _normalize_mon($m) . '-' . _normalize_yyyy($y);
         my $normalized_period = $y . '-' . ($mon2num{lc $m} || $m);
@@ -938,6 +974,9 @@ sub parse_period {
             return (FIXED, $period, $normalized_period);
         }
     }
+#    if ($str =~ /^ytd$/ig) {
+#        TRACE "  in parse_period: Matched ytd\n";
+#    }
     return (INVALID);
 }
 

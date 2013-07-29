@@ -71,11 +71,11 @@ sub process_record {
          ->check_publisher(MAY_BE_BLANK)
          ->check_platform(NOT_BLANK)
          ->check_print_issn
-         ->check_online_issn;
-    $self->check_count_by_periods(REQUESTS);
-    $self->check_ytd_total;
-    $self->check_ytd_html
-         ->check_ytd_pdf
+         ->check_online_issn
+         ->check_count_by_periods(REQUESTS)
+         ->check_ytd_total(REQUESTS)
+         ->check_ytd_html(REQUESTS)
+         ->check_ytd_pdf(REQUESTS)
          ->end_row;
 }
 

@@ -129,6 +129,14 @@ Biblio::COUNTER - COUNTER Codes of Practice report processing
                 # e.g., ("turnaways", 3)
             }
         }
+		$months_in_report = scalar @{$report->periods};
+		foreach my $ytd_type (qw( ytd ytd_html ytd_pdf )) {
+			while ( my ($metric, $n) = each %{ $count->{$ytd_type} } ) {
+				# e.g., ("requests", 3)
+			}
+		}
+
+
     }
 
 =head1 NOTE

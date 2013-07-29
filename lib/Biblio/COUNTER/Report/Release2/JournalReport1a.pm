@@ -82,9 +82,9 @@ sub process_record {
          ->check_print_issn
          ->check_online_issn
          ->check_count_by_periods(REQUESTS)
-         ->check_ytd_total
-         ->check_ytd_html
-         ->check_ytd_pdf
+         ->check_ytd_total(REQUESTS)
+         ->check_ytd_html(REQUESTS)
+         ->check_ytd_pdf(REQUESTS)
          ->end_row;
 }
 
