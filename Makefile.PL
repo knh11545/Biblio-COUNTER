@@ -14,7 +14,7 @@ WriteMakefile(
     'EXE_FILES' => [ 'bin/counterproc' ],
 	dist                => {
         COMPRESS => 'gzip -9f',
-        SUFFIX => 'gz',
+        SUFFIX => '.gz',
         PREOP => $preop,
     },
     clean               => { FILES => 'Biblio-COUNTER-*' },
