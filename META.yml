@@ -1,18 +1,21 @@
 ---
-name: Biblio-COUNTER
-version: 0.11
+abstract: 'COUNTER Codes of Practice report processing'
 author:
-  - Paul Hoffman <nkuitse@cpan.org>
-abstract: COUNTER Codes of Practice report processing
+  - 'Paul Hoffman <nkuitse@cpan.org>'
+build_requires: {}
+configure_requires:
+  Module::Build: 0.40
+dynamic_config: 1
+generated_by: 'Module::Build version 0.4007, CPAN::Meta::Converter version 2.131560'
 license: perl
-resources:
-  license: http://dev.perl.org/licenses/
-requires:
-  Text::CSV: 0
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: Biblio-COUNTER
 provides:
   Biblio::COUNTER:
     file: lib/Biblio/COUNTER.pm
-    version: 0.11
+    version: 0.12
   Biblio::COUNTER::Processor:
     file: lib/Biblio/COUNTER/Processor.pm
   Biblio::COUNTER::Processor::Atomize:
@@ -35,7 +38,12 @@ provides:
     file: lib/Biblio/COUNTER/Report/Release2/JournalReport1a.pm
   Biblio::COUNTER::Report::Release2::JournalReport2:
     file: lib/Biblio/COUNTER/Report/Release2/JournalReport2.pm
-generated_by: Module::Build version 0.2808
-meta-spec:
-  url: http://module-build.sourceforge.net/META-spec-v1.2.html
-  version: 1.2
+  Biblio::COUNTER::Report::Release3::JournalReport1:
+    file: lib/Biblio/COUNTER/Report/Release3/JournalReport1.pm
+  Biblio::COUNTER::Report::Release3::JournalReport1a:
+    file: lib/Biblio/COUNTER/Report/Release3/JournalReport1a.pm
+requires:
+  Text::CSV: 0
+resources:
+  license: http://dev.perl.org/licenses/
+version: 0.12
