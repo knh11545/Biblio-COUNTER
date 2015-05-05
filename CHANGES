@@ -2,6 +2,11 @@
 
 # This file is in YAML format; see <URL:http://www.yaml.org/>
 # for more information
+- date: 2015-05-05
+  version: 0.13
+  changes:
+    - Support COUNTER Release 4 report JR1
+
 - date: 2013-07-29
   version: 0.12
   changes:
