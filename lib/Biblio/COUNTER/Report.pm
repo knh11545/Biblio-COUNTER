@@ -34,7 +34,9 @@ use constant RELEASE      => 'release';
 use constant DESCRIPTION  => 'description';
 use constant DATE_RUN     => 'date_run';
 use constant CRITERIA     => 'criteria';
-use constant PERIOD_COVERED => 'period_covered';  # JR1a
+use constant CUSTOMER     => 'customer';
+use constant INSTITUTIONAL_IDENTIFIER     => 'institutional_identifier';
+use constant PERIOD_COVERED => 'period_covered';
 use constant LABEL        => 'label';
 use constant PERIOD_LABEL => 'period_label';
 use constant BLANK        => 'blank_field';
@@ -43,11 +45,16 @@ use constant COUNT        => 'count';
 use constant TITLE        => 'title';
 use constant PUBLISHER    => 'publisher';
 use constant PLATFORM     => 'platform';
+use constant JOURNAL_DOI  => 'journal_doi';
+use constant PROPRIETARY_IDENTIFIER     => 'proprietary_identifier';
 use constant PRINT_ISSN   => 'print_issn';
 use constant ONLINE_ISSN  => 'online_issn';
 use constant YTD_HTML     => 'ytd_html';
 use constant YTD_PDF      => 'ytd_pdf';
 use constant YTD_TOTAL    => 'ytd';
+use constant REPORTING_PERIOD_TOTAL    => 'reporting_period_total';
+use constant REPORTING_PERIOD_HTML     => 'reporting_period_html';
+use constant REPORTING_PERIOD_PDF      => 'reporting_period_pdf';
 
 # Metrics
 use constant REQUESTS  => 'requests';
@@ -197,6 +204,9 @@ sub release     { @_ > 1 ? $_[0]->{'header'}->{RELEASE()    } = $_[1] : $_[0]->{
 sub description { @_ > 1 ? $_[0]->{'header'}->{DESCRIPTION()} = $_[1] : $_[0]->{'header'}->{DESCRIPTION()} }
 sub date_run    { @_ > 1 ? $_[0]->{'header'}->{DATE_RUN()   } = $_[1] : $_[0]->{'header'}->{DATE_RUN()   } }
 sub criteria    { @_ > 1 ? $_[0]->{'header'}->{CRITERIA()   } = $_[1] : $_[0]->{'header'}->{CRITERIA()   } }
+sub customer    { @_ > 1 ? $_[0]->{'header'}->{CUSTOMER()   } = $_[1] : $_[0]->{'header'}->{CUSTOMER()   } }
+sub institutional_identifier { @_ > 1 ? $_[0]->{'header'}->{INSTITUTIONAL_IDENTIFIER()   } = $_[1] : $_[0]->{'header'}->{INSTITUTIONAL_IDENTIFIER()   } }
+sub period_covered { @_ > 1 ? $_[0]->{'header'}->{PERIOD_COVERED()   } = $_[1] : $_[0]->{'header'}->{PERIOD_COVERED()   } }
 sub publisher   { @_ > 1 ? $_[0]->{'header'}->{PUBLISHER()  } = $_[1] : $_[0]->{'header'}->{PUBLISHER()  } }
 sub platform    { @_ > 1 ? $_[0]->{'header'}->{PLATFORM()   } = $_[1] : $_[0]->{'header'}->{PLATFORM()   } }
 sub periods     { @_ > 1 ? $_[0]->{PERIODS()} = $_[1] : $_[0]->{PERIODS()} }
@@ -220,6 +230,7 @@ sub begin_row {
         my $row_str = join('', @$row);
         last if $row_str =~ /\S/;
         # Oops -- blank row where one wasn't expected
+		INFO 'Biblio::COUNTER::Report::Release4::JournalReport1->begin_row: row ', $self->current_position,' is blank.';
         $self->trigger_callback('fixed', '<row>', '<blank>', '<skipped>');
         $self->{'warnings'}++;
     }
@@ -269,14 +280,28 @@ sub check_count_by_periods {
     return $self;
 }
 
+sub check_customer {
+    my ($self) = @_;
+    $self->_check_free_text_field(CUSTOMER, NOT_BLANK);
+	return $self;
+}
+
+sub check_institutional_identifier {
+    my ($self) = @_;
+    TRACE 'In check_institutional_identifier. position: ', $self->current_position;
+    $self->_check_free_text_field(INSTITUTIONAL_IDENTIFIER, MAY_BE_BLANK)->_next;
+}
+
 sub check_report_criteria {
     my ($self) = @_;
+    TRACE 'In check_report_criteria. position: ', $self->current_position;
     $self->_check_free_text_field(CRITERIA, NOT_BLANK)->_next;
 }
 
 sub check_period_covered {
     my ($self) = @_;
-    $self->_check_free_text_field(PERIOD_COVERED, NOT_BLANK)->_next;
+    TRACE 'In check_period_covered. position: ', $self->current_position;
+    $self->_check_field(PERIOD_COVERED, \&_is_period_covered)->_next;
 }
 
 sub check_title {
@@ -292,6 +317,16 @@ sub check_publisher {
 sub check_platform {
     my ($self, $mode, $str) = @_;
     $self->_check_free_text_field(PLATFORM, $mode, $str);
+}
+
+sub check_journal_doi {
+    my ($self) = @_;
+    $self->_check_field(JOURNAL_DOI, \&_is_doi)->_next;
+}
+
+sub check_proprietary_identifier {
+    my ($self, $mode, $str) = @_;
+    $self->_check_free_text_field(PROPRIETARY_IDENTIFIER, $mode, $str);
 }
 
 sub check_print_issn {
@@ -321,19 +356,45 @@ sub check_ytd_pdf {
     $self->_check_count($metric, YTD_PDF);
 }
 
+sub check_reporting_period_total {
+    my ($self, $metric) = @_;
+    TRACE "Inside Biblio::COUNTER::Report::check_reporting_period_total\n";
+    TRACE "  metric: ", (defined $metric ? $metric : "undef"), "\n";
+    $self->_check_count($metric, REPORTING_PERIOD_TOTAL);
+}
+
+sub check_reporting_period_html {
+    my ($self, $metric) = @_;
+    TRACE "Inside Biblio::COUNTER::Report::check_reporting_period_html\n";
+    TRACE "  metric: ", (defined $metric ? $metric : "undef"), "\n";
+    $self->_check_count($metric, REPORTING_PERIOD_HTML);
+}
+
+sub check_reporting_period_pdf {
+    my ($self, $metric) = @_;
+    TRACE "Inside Biblio::COUNTER::Report::check_reporting_period_pdf\n";
+    TRACE "  metric: ", (defined $metric ? $metric : "undef"), "\n";
+    $self->_check_count($metric, REPORTING_PERIOD_PDF);
+}
+
 sub check_period_labels {
-    my ($self) = @_;
+    my ($self, $max_num_periods) = @_;
+    # Set a default for number of periodic usage columns if not set
+    $max_num_periods = $max_num_periods ? $max_num_periods : 12;
     my @periods;
     $self->_in_field(PERIOD_LABEL);
-    while (my $period = $self->_period_label) {
-        push @periods, $period;
-    }
+	while (my $period = $self->_period_label) {
+		push @periods, $period;
+		TRACE "check_period_labels: period = " . $period;
+		# Do not parse more period columns than expected from Periods Covered field
+		last if ( defined($self->{'num_periods_covered'}) && (scalar @periods == $self->{'num_periods_covered'}) );
+	}
     if (@periods == 0) {
         # Too few periods
         $self->_cant_fix('<at least 1 periodic usage column>');
     }
-    elsif (@periods > 12) {
-        $self->_cant_fix('<no more than 12 periodic usage columns>');
+    elsif (@periods > $max_num_periods) {
+        $self->_cant_fix("<no more than $max_num_periods periodic usage columns>");
     }
     $self->{'periods'} = \@periods;
     return $self;
@@ -652,6 +713,25 @@ sub _is_yyyymmdd {
     return $self->_cant_fix('<yyyy-mm-dd>');
 }
 
+sub _is_period_covered {
+    my ($self) = @_;
+    my $cur = $self->_ref_to_cur_cell;
+    my $val = $$cur;
+    TRACE "In _is_period_covered. val: $val";
+	if ($val =~ /^(\d\d\d\d)-(\d\d)-(\d\d) to (\d\d\d\d)-(\d\d)-(\d\d)$/) {
+		if ($1 ne $4) {
+			return $self->_cant_fix('<period_covered from more than one calendar year is not implemented yet>');
+			$self->{'num_periods_covered'} = 0;
+		} else {
+			$self->{'num_periods_covered'}   = $5 - $2 + 1;  # Number of months in single calendar year
+		}
+		TRACE "_is_period_covered: num_periods_covered = " . $self->{'num_periods_covered'};
+		return $self->_ok($cur);
+	}
+    # We dont't try to fix the values.
+    return $self->_cant_fix('<yyyy-mm-dd> to <yyyy-mm-dd>');
+}
+
 sub _is_anything {
     my ($self) = @_;
     $self->_trim;
@@ -670,6 +750,21 @@ sub _is_issn {
         }
         else {
             $self->_cant_fix('<issn>');
+        }
+    }
+    return $self;
+}
+
+sub _is_doi {
+    my ($self, $field, $cur) = @_;
+    $self->_trim;
+    my $val = $$cur;
+    if (length $val) {
+        if ($val =~ /^10\..+\/.+/) {
+            $self->_ok($cur);
+        }
+        else {
+            $self->_cant_fix('<doi>');
         }
     }
     return $self;
@@ -747,9 +842,11 @@ sub _parse_line {
     my ($self, $line) = @_;
     chomp $line;
     if ($line =~ /\t/) {
+	TRACE "_parse_line: found \\t in line position ", $self->current_position;
         return split /\t/, $line;
     }
     elsif ($line =~ /,/) {
+	TRACE "_parse_line: found , in line position ", $self->current_position;
         my $csv = $self->{'csv_parser'};
         if (!defined $csv) {
             eval "use Text::CSV; 1" or die "Can't use Text::CSV";
@@ -769,9 +866,12 @@ sub _parse_line {
         return @cells;
     }
     elsif ($line =~ s/^"|"$//g) {
+	TRACE "_parse_line: found no tabs or commas in line but starts or ends with quote; position ", $self->current_position;
         # XXX All this needs some tweaking to account for extremely unlikely edge cases
         $line =~ s/""/"/g;
         $line =~ s/\\"/"/g;
+    } else {
+	TRACE "_parse_line: Found no condition to further parse line; position ", $self->current_position; 
     }
     return $line;
 }
