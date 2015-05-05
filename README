@@ -405,8 +405,11 @@ REPORTS SUPPORTED
         Number of Successful Full-Text Article Requests from an Archive by
         Month and Journal
 
-    Other reports, including Release 4 reports, will be supported in the
-    future.
+  COUNTER Release 4 Reports
+    "Journal Report 1 (R4)"
+        Number of Successful Full-Text Article Requests by Month and Journal
+
+    Other reports will be supported in the future.
 
 SEE ALSO
     <http://www.projectcounter.org/>
