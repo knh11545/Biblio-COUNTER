@@ -10,6 +10,10 @@ use vars qw($VERSION);
 
 $VERSION = '0.13';
 
+use Log::Log4perl qw(:easy);
+Log::Log4perl->easy_init($INFO);
+
+
 sub report {
     my ($cls, $how, %args) = @_;
     if (ref($how) eq 'ARRAY') {
@@ -75,6 +79,7 @@ sub _parse_report_name {
     else {
         $release = 2;  # XXX Safe to default?
     }
+	DEBUG "_parse_report_name: genre = $genre; number = $number; release = $release";
     return ($genre, $number, $release);
 }
 
@@ -590,7 +595,18 @@ Number of Successful Full-Text Article Requests from an Archive by Month and Jou
 
 =back
 
-Other reports, including Release 4 reports, will be supported in the future.
+
+=head2 COUNTER Release 4 Reports
+
+=over 4
+
+=item C<Journal Report 1 (R4)>
+
+	  Number of Successful Full-Text Article Requests by Month and Journal
+
+=back	  
+
+Other reports will be supported in the future.
 
 
 
