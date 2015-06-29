@@ -8,7 +8,7 @@ use Biblio::COUNTER::Report qw(REQUESTS MAY_BE_BLANK NOT_BLANK);
 @Biblio::COUNTER::Report::Release4::JournalReport1::ISA = qw(Biblio::COUNTER::Report);
 
 use Log::Log4perl qw(:easy);
-Log::Log4perl->easy_init($INFO);
+# Log::Log4perl->easy_init($INFO);
 
 sub canonical_report_name { 'Journal Report 1 (R4)' }
 sub canonical_report_description { 'Number of Successful Full-text Article Requests by Month and Journal' };
