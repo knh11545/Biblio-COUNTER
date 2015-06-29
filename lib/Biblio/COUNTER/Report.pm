@@ -6,7 +6,7 @@ use warnings;
 use Biblio::COUNTER;
 
 use Log::Log4perl qw(:easy);
-Log::Log4perl->easy_init($INFO);
+# Log::Log4perl->easy_init($INFO);
 
 require Exporter;
 use vars qw(@ISA @EXPORT_OK);
@@ -590,7 +590,7 @@ sub _check_count {
     my $val = $$cur;
     my $container = $self->{'container'};
     if (defined $period) {
-        if ($period =~ m/ytd|ytd_html|ytd_pdf/) {
+        if ($period =~ m/ytd|ytd_html|ytd_pdf|reporting_period_total|reporting_period_html|reporting_period_pdf/) {
             TRACE "Inside Biblio::COUNTER::Report::_check_count. Handling $period.\n";
             TRACE "  Field : ", (defined $field ? $field : "undef"), " = $val", "\n";
 

@@ -7,6 +7,9 @@ use autodie;     # good to have when working with files
 
 use Biblio::COUNTER;
 
+use Log::Log4perl qw(:easy);
+Log::Log4perl->easy_init($TRACE);
+
 my $file = shift;
 my $fh; open $fh, '<', $file;
 
@@ -38,15 +41,16 @@ my @periods = map { ( $report->parse_period($_) )[2] } @{$report->periods};
                # e.g., [ "2008-01", "2008-02", "2008-03" ]
 
 foreach my $rec ($report->records) {
-   say 'Title: ' . $rec->{title};
-   say 'Publisher: ' . $rec->{publisher};
-   say 'Platform: ' .  $rec->{platform};
-   my $count = $rec->{count};
-   foreach my $period (@periods) {
+    say 'Title: ' . $rec->{title};
+    say 'Publisher: ' . $rec->{publisher};
+    say 'Platform: ' .  $rec->{platform};
+    my $count = $rec->{count};
+    foreach my $period (sort keys($count)) {
+	#foreach my $period (@periods) {
         my $period_count = $count->{$period};
         say "$period:";
         while ( my ($metric, $n) = each %$period_count) {
-            say "$metric: $n";
+            say "  $metric: $n";
             # e.g., ("turnaways", 3)
         }
     }
