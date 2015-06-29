@@ -2,6 +2,8 @@
 abstract: 'COUNTER Codes of Practice report processing'
 author:
   - 'Paul Hoffman <nkuitse@cpan.org>'
+  - 'Todd Holbrook <holbrook@cpan.org>'
+  - 'Helge Knüttel <helge.knuettel@ur.de>'
 build_requires: {}
 configure_requires:
   Module::Build: 0.40
@@ -15,7 +17,7 @@ name: Biblio-COUNTER
 provides:
   Biblio::COUNTER:
     file: lib/Biblio/COUNTER.pm
-    version: 0.12
+    version: 0.14
   Biblio::COUNTER::Processor:
     file: lib/Biblio/COUNTER/Processor.pm
   Biblio::COUNTER::Processor::Atomize:
@@ -42,8 +44,11 @@ provides:
     file: lib/Biblio/COUNTER/Report/Release3/JournalReport1.pm
   Biblio::COUNTER::Report::Release3::JournalReport1a:
     file: lib/Biblio/COUNTER/Report/Release3/JournalReport1a.pm
+  Biblio::COUNTER::Report::Release4::JournalReport1:
+    file: lib/Biblio/COUNTER/Report/Release4/JournalReport1.pm
 requires:
+  Log::Log4perl: 0
   Text::CSV: 0
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.12
+version: 0.14

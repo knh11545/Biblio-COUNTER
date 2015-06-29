@@ -8,7 +8,7 @@ use strict;
 
 use vars qw($VERSION);
 
-$VERSION = '0.13';
+$VERSION = '0.14';
 
 use Log::Log4perl qw(:easy);
 Log::Log4perl->easy_init($INFO);

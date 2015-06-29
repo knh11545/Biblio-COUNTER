@@ -1,3 +1,4 @@
+use utf8;
 use Module::Build;
 
 Module::Build->new(
@@ -7,6 +8,11 @@ Module::Build->new(
 		'Text::CSV'     => 0, 
 		'Log::Log4perl' => 0,
 	},
-    'dist_author' => 'Paul Hoffman <nkuitse@cpan.org>',
+    'dist_author' => [
+		'Paul Hoffman <nkuitse@cpan.org>',
+		'Todd Holbrook <holbrook@cpan.org>',
+		'Helge Knüttel <helge.knuettel@ur.de>',
+	],
+	# create_makefile_pl => 'traditional', # Create a Makefile.PL
 )->create_build_script;
 

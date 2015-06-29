@@ -2,6 +2,12 @@
 
 # This file is in YAML format; see <URL:http://www.yaml.org/>
 # for more information
+- date: 2015-06-30
+  version: 0.14
+  changes:
+    - Fix import of reporting_period_* fields
+    - Some smaller fixes
+
 - date: 2015-05-05
   version: 0.13
   changes:
