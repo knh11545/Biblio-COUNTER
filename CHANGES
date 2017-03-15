@@ -2,6 +2,11 @@
 
 # This file is in YAML format; see <URL:http://www.yaml.org/>
 # for more information
+- date: 2017-03-15
+  version: 0.15
+  changes:
+    - Smaller fix in module generation
+
 - date: 2015-06-30
   version: 0.14
   changes:
