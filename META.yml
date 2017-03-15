@@ -17,7 +17,7 @@ name: Biblio-COUNTER
 provides:
   Biblio::COUNTER:
     file: lib/Biblio/COUNTER.pm
-    version: 0.14
+    version: 0.15
   Biblio::COUNTER::Processor:
     file: lib/Biblio/COUNTER/Processor.pm
   Biblio::COUNTER::Processor::Atomize:
@@ -51,4 +51,4 @@ requires:
   Text::CSV: 0
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.14
+version: 0.15

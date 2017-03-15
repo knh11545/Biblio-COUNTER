@@ -31,7 +31,7 @@
    "provides" : {
       "Biblio::COUNTER" : {
          "file" : "lib/Biblio/COUNTER.pm",
-         "version" : "0.14"
+         "version" : "0.15"
       },
       "Biblio::COUNTER::Processor" : {
          "file" : "lib/Biblio/COUNTER/Processor.pm"
@@ -82,5 +82,5 @@
          "http://dev.perl.org/licenses/"
       ]
    },
-   "version" : "0.14"
+   "version" : "0.15"
 }
